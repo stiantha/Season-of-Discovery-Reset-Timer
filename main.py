@@ -25,7 +25,7 @@ def job():
     if days_behind < 0:  # If today is Monday
         days_behind += 7  # Get the last Tuesday
     last_reset_time = now - timedelta(days=days_behind)
-    last_reset_time = last_reset_time.replace(hour=4, minute=0, second=0, microsecond=0)
+    last_reset_time = last_reset_time.replace(hour=5, minute=0, second=0, microsecond=0)
     # Calculate the next reset time
     if now - last_reset_time > timedelta(hours=72):
         next_reset_time = last_reset_time + timedelta(days=7)
@@ -38,9 +38,9 @@ def job():
         asyncio.run_coroutine_threadsafe(guild.me.edit(nick=next_reset_time_str), client.loop)
     # Calculate the remaining time until the next reset
     remaining_time = next_reset_time - now
-    remaining_hours = remaining_time.total_seconds() // 3600  # Convert to hours
+    remaining_hours = round((remaining_time.total_seconds() / 3600) + 0.5)  # Convert to hours and round up
     # Set the bot's status to the remaining time
-    activity = Activity(name=f"Reset in {remaining_hours} hours", type=ActivityType.competing)
+    activity = Activity(name=f"in {remaining_hours} hours", type=ActivityType.playing)
     asyncio.run_coroutine_threadsafe(client.change_presence(activity=activity), client.loop)
 
 # wow timer reset
