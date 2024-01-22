@@ -8,6 +8,9 @@ import schedule
 import time
 import threading
 import math
+from datetime import datetime, timedelta
+import pytz
+
 
 load_dotenv()
 
@@ -18,28 +21,30 @@ intents: Intents = Intents.default()
 intents.message_content = True  # NOQA
 client: Client = Client(intents=intents)
 
+# Define the timezone for the reset time
+reset_timezone = pytz.timezone('Europe/Oslo')  # Norway timezone
+
 def job():
-    # Get the current time
-    now = datetime.now()
-    # Calculate the last Tuesday at 04:00
+    # Get the current time in the reset timezone
+    now = datetime.now(reset_timezone)
+
+    # Calculate the last reset time
     days_behind = now.weekday() - 1  # 1 represents Tuesday
     if days_behind < 0:  # If today is Monday
         days_behind += 7  # Get the last Tuesday
     last_reset_time = now - timedelta(days=days_behind)
     last_reset_time = last_reset_time.replace(hour=5, minute=0, second=0, microsecond=0)
+
     # Calculate the next reset time
     if now - last_reset_time > timedelta(hours=72):
         next_reset_time = last_reset_time + timedelta(days=7)
     else:
         next_reset_time = last_reset_time + timedelta(days=3)
-    # Format the time as a string
-    next_reset_time_str = next_reset_time.strftime("%A %H:%M")
-    # Change the bot's nickname to the next reset time
-    for guild in client.guilds:
-        asyncio.run_coroutine_threadsafe(guild.me.edit(nick=next_reset_time_str), client.loop)
+
     # Calculate the remaining time until the next reset
     remaining_time = next_reset_time - now
-    remaining_hours = math.ceil(remaining_time.total_seconds() / 3600)  # Convert to hours and round up# Convert to hours and round down
+    remaining_hours = math.ceil(remaining_time.total_seconds() / 3600)  # Convert to hours and round up
+
     # Set the bot's status to the remaining time
     activity = Activity(name=f"in {remaining_hours} hours", type=ActivityType.playing)
     asyncio.run_coroutine_threadsafe(client.change_presence(activity=activity), client.loop)
