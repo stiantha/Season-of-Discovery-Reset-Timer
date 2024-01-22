@@ -1,11 +1,15 @@
-from typing import Final
 import os
-from dotenv import load_dotenv
+from typing import Final
 from discord import Intents, Client, Message
-from timer import job
+from datetime import datetime, timedelta
+from dotenv import load_dotenv
+import asyncio
+import schedule
+import time
+import threading
 
-# STEP 0: LOAD OUR TOKEN FROM SOMEWHERE SAFE
 load_dotenv()
+
 TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
 
 # STEP 1: BOT SETUP
@@ -13,46 +17,45 @@ intents: Intents = Intents.default()
 intents.message_content = True  # NOQA
 client: Client = Client(intents=intents)
 
+def job():
+    # Get the current time
+    now = datetime.now()
+    # Calculate the last Tuesday at 04:00
+    days_behind = now.weekday() - 1  # 1 represents Tuesday
+    if days_behind < 0:  # If today is Monday
+        days_behind += 7  # Get the last Tuesday
+    last_reset_time = now - timedelta(days=days_behind)
+    last_reset_time = last_reset_time.replace(hour=4, minute=0, second=0, microsecond=0)
+    # Calculate the next reset time
+    if now - last_reset_time > timedelta(hours=72):
+        next_reset_time = last_reset_time + timedelta(days=7)
+    else:
+        next_reset_time = last_reset_time + timedelta(days=3)
+    # Format the time as a string
+    next_reset_time_str = next_reset_time.strftime("%A %H:%M")
+    # Change the bot's nickname to the next reset time
+    for guild in client.guilds:
+        asyncio.run_coroutine_threadsafe(guild.me.edit(nick=next_reset_time_str), client.loop)
+
 # wow timer reset
 @client.event
 async def on_ready():
     print('We have logged in as {0.user}'.format(client))
-    job(client)  # Change the bot's nickname when the bot is ready
+    job()  # Change the bot's nickname when the bot is ready
     print(f'{client.user} is now running!')
-
-# STEP 2: MESSAGE FUNCTIONALITY
-async def send_message(message: Message, user_message: str) -> None:
-    if not user_message:
-        print('(Message was empty because intents were not enabled probably)')
-        return
-
-    if is_private := user_message[0] == '?':
-        user_message = user_message[1:]
-
-    try:
-        response: str = get_response(user_message)
-        await message.author.send(response) if is_private else await message.channel.send(response)
-    except Exception as e:
-        print(e)
-
-
-# STEP 4: HANDLING INCOMING MESSAGES
-@client.event
-async def on_message(message: Message) -> None:
-    if message.author == client.user:
-        return
-
-    username: str = str(message.author)
-    user_message: str = message.content
-    channel: str = str(message.channel)
-
-    print(f'[{channel}] {username}: "{user_message}"')
-    await send_message(message, user_message)
-
+    # Schedule the job to run every 25 minutes
+    schedule.every(25).minutes.do(job)
 
 # STEP 5: MAIN ENTRY POINT
 def main() -> None:
-    client.run(token=TOKEN)
+    # Run the client in a separate thread
+    threading.Thread(target=client.run, args=(TOKEN,)).start()
+
+    while True:
+        # Run pending jobs
+        schedule.run_pending()
+        # Sleep for a while before checking for pending jobs again
+        time.sleep(1)
 
 
 if __name__ == '__main__':
