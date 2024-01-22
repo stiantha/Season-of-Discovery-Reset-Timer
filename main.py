@@ -7,6 +7,7 @@ import asyncio
 import schedule
 import time
 import threading
+import math
 
 load_dotenv()
 
@@ -38,7 +39,7 @@ def job():
         asyncio.run_coroutine_threadsafe(guild.me.edit(nick=next_reset_time_str), client.loop)
     # Calculate the remaining time until the next reset
     remaining_time = next_reset_time - now
-    remaining_hours = math.floor(remaining_time.total_seconds() / 3600)  # Convert to hours and round down
+    remaining_hours = math.ceil(remaining_time.total_seconds() / 3600)  # Convert to hours and round up# Convert to hours and round down
     # Set the bot's status to the remaining time
     activity = Activity(name=f"in {remaining_hours} hours", type=ActivityType.playing)
     asyncio.run_coroutine_threadsafe(client.change_presence(activity=activity), client.loop)
