@@ -1,6 +1,6 @@
 import os
 from typing import Final
-from discord import Intents, Client, Game
+from discord import Intents, Client, Activity, ActivityType
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import asyncio
@@ -16,8 +16,6 @@ TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
 intents: Intents = Intents.default()
 intents.message_content = True  # NOQA
 client: Client = Client(intents=intents)
-
-
 
 def job():
     # Get the current time
@@ -40,9 +38,10 @@ def job():
         asyncio.run_coroutine_threadsafe(guild.me.edit(nick=next_reset_time_str), client.loop)
     # Calculate the remaining time until the next reset
     remaining_time = next_reset_time - now
-    remaining_time_str = str(remaining_time).split('.')[0]  # Remove the microseconds
+    remaining_hours = remaining_time.total_seconds() // 3600  # Convert to hours
     # Set the bot's status to the remaining time
-    asyncio.run_coroutine_threadsafe(client.change_presence(activity=Game(name=f"Reset in {remaining_time_str}")), client.loop)
+    activity = Activity(name=f"Reset in {remaining_hours} hours", type=ActivityType.custom)
+    asyncio.run_coroutine_threadsafe(client.change_presence(activity=activity), client.loop)
 
 # wow timer reset
 @client.event
