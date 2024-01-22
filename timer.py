@@ -19,7 +19,7 @@ def job(client):
     else:
         next_reset_time = last_reset_time + timedelta(days=3)
     # Format the time as a string
-    next_reset_time_str = next_reset_time.strftime("%A %H:%M")
+    next_reset_time_str = next_reset_time.strftime("TEST%A %H:%M")
     # Change the bot's nickname to the next reset time
     for guild in client.guilds:
         asyncio.run_coroutine_threadsafe(guild.me.edit(nick=next_reset_time_str), client.loop)
