@@ -40,7 +40,7 @@ def job():
     remaining_time = next_reset_time - now
     remaining_hours = remaining_time.total_seconds() // 3600  # Convert to hours
     # Set the bot's status to the remaining time
-    activity = Activity(name=f"Reset in {remaining_hours} hours", type=ActivityType.custom)
+    activity = Activity(name=f"Reset in {remaining_hours} hours", type=ActivityType.competing)
     asyncio.run_coroutine_threadsafe(client.change_presence(activity=activity), client.loop)
 
 # wow timer reset
