@@ -1,6 +1,6 @@
 import os
 from typing import Final
-from discord import Intents, Client, Message
+from discord import Intents, Client, Game
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import asyncio
@@ -16,6 +16,8 @@ TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
 intents: Intents = Intents.default()
 intents.message_content = True  # NOQA
 client: Client = Client(intents=intents)
+
+
 
 def job():
     # Get the current time
@@ -36,6 +38,11 @@ def job():
     # Change the bot's nickname to the next reset time
     for guild in client.guilds:
         asyncio.run_coroutine_threadsafe(guild.me.edit(nick=next_reset_time_str), client.loop)
+    # Calculate the remaining time until the next reset
+    remaining_time = next_reset_time - now
+    remaining_time_str = str(remaining_time).split('.')[0]  # Remove the microseconds
+    # Set the bot's status to the remaining time
+    asyncio.run_coroutine_threadsafe(client.change_presence(activity=Game(name=f"Reset in {remaining_time_str}")), client.loop)
 
 # wow timer reset
 @client.event
