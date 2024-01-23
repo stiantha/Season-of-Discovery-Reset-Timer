@@ -37,10 +37,18 @@ def job():
 
     # If the next reset time has passed, calculate the next reset time
     if now >= next_reset_time:
-        next_reset_time = next_reset_time + timedelta(days=3)
+        next_reset_time = next_reset_time + timedelta(hours=72)
         # Store the next reset time in the file
         with open('next_reset_time.json', 'w') as f:
             json.dump(next_reset_time.isoformat(), f)
+
+        # Format the next reset time as a string
+        next_reset_time_str = next_reset_time.strftime('%A %H:%M')
+
+        # Change the bot's nickname to the next reset time
+        for guild in client.guilds:
+            me = guild.me
+            asyncio.run_coroutine_threadsafe(me.edit(nick=next_reset_time_str), client.loop)
 
     # Calculate the remaining time until the next reset
     remaining_time = next_reset_time - now
