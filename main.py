@@ -1,4 +1,5 @@
 import os
+import json
 from typing import Final
 from discord import Intents, Client, Activity, ActivityType
 from datetime import datetime, timedelta
@@ -8,15 +9,13 @@ import schedule
 import time
 import threading
 import math
-from datetime import datetime, timedelta
 import pytz
-
 
 load_dotenv()
 
 TOKEN: Final[str] = os.getenv('DISCORD_TOKEN')
 
-# STEP 1: BOT SETUP
+# BOT SETUP
 intents: Intents = Intents.default()
 intents.message_content = True  # NOQA
 client: Client = Client(intents=intents)
@@ -28,18 +27,20 @@ def job():
     # Get the current time in the reset timezone
     now = datetime.now(reset_timezone)
 
-    # Calculate the last reset time
-    days_since_last_reset = now.weekday() - 1  # 1 represents Tuesday
-    if days_since_last_reset < 0:  # If today is Monday
-        days_since_last_reset += 7  # Get the last Tuesday
-    last_reset_time = now - timedelta(days=days_since_last_reset)
-    last_reset_time = last_reset_time.replace(hour=5, minute=0, second=0, microsecond=0)
+    # Try to read the next reset time from the file
+    try:
+        with open('next_reset_time.json', 'r') as f:
+            next_reset_time = datetime.fromisoformat(json.load(f))
+    except (FileNotFoundError, ValueError):
+        # If the file doesn't exist or contains invalid data, use a default next reset time
+        next_reset_time = datetime.fromisoformat(os.getenv('NEXT_RESET_TIME'))
 
-    # Calculate the next reset time
-    if now - last_reset_time >= timedelta(hours=72):
-        next_reset_time = last_reset_time + timedelta(hours=72)
-    else:
-        next_reset_time = last_reset_time + timedelta(hours=72) - (now - last_reset_time)
+    # If the next reset time has passed, calculate the next reset time
+    if now >= next_reset_time:
+        next_reset_time = now + timedelta(hours=72)
+        # Store the next reset time in the file
+        with open('next_reset_time.json', 'w') as f:
+            json.dump(next_reset_time.isoformat(), f)
 
     # Calculate the remaining time until the next reset
     remaining_time = next_reset_time - now
@@ -58,7 +59,7 @@ async def on_ready():
     # Schedule the job to run every 25 minutes
     schedule.every(25).minutes.do(job)
 
-# STEP 5: MAIN ENTRY POINT
+# MAIN ENTRY POINT
 def main() -> None:
     # Run the client in a separate thread
     threading.Thread(target=client.run, args=(TOKEN,)).start()
