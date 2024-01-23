@@ -33,7 +33,7 @@ def job():
             next_reset_time = datetime.fromisoformat(json.load(f))
     except (FileNotFoundError, ValueError):
         # If the file doesn't exist or contains invalid data, use a default next reset time
-        next_reset_time = datetime.fromisoformat(os.getenv('NEXT_RESET_TIME'))
+        next_reset_time = datetime.fromisoformat(os.getenv('LAST_KNOWN_RESET'))
 
     # If the next reset time has passed, calculate the next reset time
     if now >= next_reset_time:
