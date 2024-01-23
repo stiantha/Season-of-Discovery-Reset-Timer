@@ -2,10 +2,10 @@
 
 This is a Discord bot designed to keep track of a recurring event that happens every 72 hours. It updates its status frequently to display the remaining hours until the next event, and changes its nickname to the day and time of the next event when the reset occurs.
 
-![Problem illustration](/images/problem.png)
+![Problem illustration](images/problem.png)
 *Illustration of the problem the bot is designed to solve.*
 
-![Solution illustration](/images/solution.png)
+![Solution illustration](images/solution.png)
 *Illustration of how the bot solves the problem.*
 
 ## Usage
