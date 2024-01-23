@@ -37,7 +37,7 @@ def job():
 
     # If the next reset time has passed, calculate the next reset time
     if now >= next_reset_time:
-        next_reset_time = next_reset_time + timedelta(hours=72)
+        next_reset_time = next_reset_time + timedelta(days=3)
         # Store the next reset time in the file
         with open('next_reset_time.json', 'w') as f:
             json.dump(next_reset_time.isoformat(), f)
