@@ -28,10 +28,16 @@ def job():
     # Get the current time in the reset timezone
     now = datetime.now(reset_timezone)
 
-    # Calculate the last reset time
-    days_behind = now.weekday() - 1  # 1 represents Tuesday
-    if days_behind < 0:  # If today is Monday
-        days_behind += 7  # Get the last Tuesday
+    if now.weekday() >= 4:  # If today is Friday, Saturday, or Sunday
+        # Calculate the last Friday
+        days_behind = now.weekday() - 4  # 4 represents Friday
+    else:
+        # Calculate the last Tuesday
+        days_behind = now.weekday() - 1  # 1 represents Tuesday
+
+    if days_behind < 0:  # If today is Monday or Tuesday (for Tuesday calculation) or Friday (for Friday calculation)
+        days_behind += 7  # Get the last Tuesday or Friday
+
     last_reset_time = now - timedelta(days=days_behind)
     last_reset_time = last_reset_time.replace(hour=5, minute=0, second=0, microsecond=0)
 
