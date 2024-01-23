@@ -2,7 +2,7 @@ import os
 import json
 from typing import Final
 from discord import Intents, Client, Activity, ActivityType
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from dotenv import load_dotenv
 import asyncio
 import schedule
@@ -37,7 +37,7 @@ def job():
 
     # If the next reset time has passed, calculate the next reset time
     if now >= next_reset_time:
-        next_reset_time = now + timedelta(hours=72)
+        next_reset_time = next_reset_time + timedelta(hours=72)
         # Store the next reset time in the file
         with open('next_reset_time.json', 'w') as f:
             json.dump(next_reset_time.isoformat(), f)
